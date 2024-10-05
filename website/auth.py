@@ -10,7 +10,7 @@ auth = Blueprint('auth', __name__)
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
-        password = request.form.grt('password')
+        password = request.form.get('password')
         
         user = User.query.filter_by(email=email).first()
         if user:
@@ -29,6 +29,12 @@ def login():
 @login_required
 def logout():
     logout_user()
+    return redirect(url_for('auth.login'))
+
+@auth.route('/delete-account')
+@login_required
+def delete():
+    delete_user()
     return redirect(url_for('auth.login'))
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
@@ -51,7 +57,7 @@ def sign_up():
         elif len(password1) < 7:
             flash('Password must contain atleast 7 characters.', category='error')
         else:
-            new_user = User(email= email, first_name=first_name, password=generate_password_hash(password1, method='sha256'))
+            new_user = User(email= email, first_name=first_name, password=generate_password_hash(password1, method='pbkdf2:sha256'))
             db.session.add(new_user)
             db.session.commit()
             login_user(user, remember=True)
