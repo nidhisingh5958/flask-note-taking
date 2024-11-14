@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, jsonify
+from flask import Blueprint, render_template, request, flash, jsonify, redirect
 from flask_login import login_required, current_user
 from .models import Note
 from . import db
@@ -33,3 +33,19 @@ def delete_note():
             db.session.commit()
             
     return jsonify({})
+
+@views.route('/update/<int:id>', methods=['GET','POST'])
+def update(id):
+    if request.method == 'POST':
+        data = request.form['note']
+        note = Note.query.filter_by(id=id).first()
+        note.data = data
+        if len(note.data) < 1:
+            flash('Note is too short!', category='error')
+        else:    
+            db.session.commit()
+            flash('Note updated!', category='success')
+            return redirect('/')
+
+    note = Note.query.filter_by(id=id).first()
+    return render_template('update.html', note=note , user=current_user)
